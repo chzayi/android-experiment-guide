@@ -1117,5 +1117,81 @@ GitHub代码：https://github.com/hzuapps/android-labs/tree/master/app/src/main/
 ```  
 
 ###8. 获取短信
-
-
+    1.在AndroidManifest.xml添加权限
+     <uses-permission android:name="android.permission.SEND_SMS"></uses-permission><!--添加权限-->
+     <uses-permission android:name="android.permission.RECEIVE_SMS"></uses-permission> 
+     <uses-permission android:name="android.permission.READ_SMS"></uses-permission> 
+    2.注册广播接收类
+     <application ......>
+        <receiver android:name=".SMSBroadcastReceiver"><!-新建SMSBroadcastReceiver.java类-->
+            <intent-filter android:priority="1000">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
+    </application>
+    3.新建SMSBroadcastReceiver.java类
+	package edu.hzuapps.androidworks.homeworks.com1314080901209; 
+	import java.text.SimpleDateFormat;
+	import java.util.Date;
+	import android.content.BroadcastReceiver;
+	import android.content.Context;
+	import android.content.Intent;
+	import android.media.MediaPlayer;
+	import android.os.Bundle;
+	import android.telephony.SmsMessage;
+	import android.widget.TextView;
+	import android.widget.Toast;
+	
+	public class SMSBroadcastReceiver extends BroadcastReceiver {
+		private MediaPlayer music = null;// 播放器引用
+		 private TextView tv;  
+	 
+		 /**
+		  * 短信接收
+		  */
+		 @Override
+	    public void onReceive(Context context, Intent intent) {
+	        SmsMessage msg = null;
+	            Bundle bundle = intent.getExtras();
+	            if (bundle != null) {
+	                Object[] pdusObj = (Object[]) bundle.get("pdus");
+	                for (Object p : pdusObj) {
+	                    msg= SmsMessage.createFromPdu((byte[]) p);
+	                    String msgTxt =msg.getMessageBody();//得到消息的内容
+	                    Date date = new Date(msg.getTimestampMillis());//时间
+	                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	                    String receiveTime = format.format(date);
+	                    String senderNumber = msg.getOriginatingAddress();
+	                if (msgTxt.trim().equals("baojing")) {
+	                    Toast.makeText(context, "正在报警......", Toast.LENGTH_LONG)
+	                            .show();
+	                    PlayMusic(context,R.raw.baoj);//播放报警音乐
+	                    System.out.println("正在报警......");
+	                    return;
+	                } else {
+	                	String c="发送人："+senderNumber+"  短信内容："+msgTxt+"接受时间："+receiveTime;
+	                    Toast.makeText(context, c, Toast.LENGTH_LONG).show();
+	                    System.out.println(c);
+	                    return;
+	                }
+	            }
+	 
+	            return;
+	        }
+	            else {
+	            	Toast.makeText(context, "is null", Toast.LENGTH_LONG).show();
+					
+				}
+	    }
+		 
+		/**
+	 	* 播放音乐，参数是资源id
+	 	* 
+	 	* @param MusicId
+	 	*/ 
+	 	private void PlayMusic(Context context, int MusicId) {
+			music = MediaPlayer.create(context, MusicId);
+			music.start();
+	
+		}
+	}
